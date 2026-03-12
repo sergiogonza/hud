@@ -233,6 +233,13 @@ title:node.querySelector("title")?.textContent,
 description:node.querySelector("description")?.textContent,
 link:node.querySelector("link")?.textContent,
 pubDate:node.querySelector("pubDate")?.textContent,
+thumbnail: node.querySelector("media\\:thumbnail")?.getAttribute("url"),
+media: {
+content: node.querySelector("media\\:content")?.getAttribute("url")
+},
+enclosure: {
+url: node.querySelector("enclosure")?.getAttribute("url")
+},
 feedSource:url
 }
 
@@ -286,29 +293,22 @@ el.style.cursor = "pointer"
 /* COLOR SEGUN TLP */
 
 if(d.tlp === "RED"){
-
-el.style.background = "#ff3b30"
-el.style.boxShadow = "0 0 8px #ff3b30"
-el.style.width="14px"
-el.style.height="14px"
-
+el.style.background = "rgba(255,60,60,0.65)"
+el.style.boxShadow = "0 0 6px rgba(255,60,60,0.5)"
+el.style.width="12px"
+el.style.height="12px"
 }
 
 else if(d.tlp === "AMBER"){
-
-el.style.background = "#ff8c00"
-el.style.boxShadow = "0 0 8px #ff8c00"
-
-el.style.width="12px"
-el.style.height="12px"
-
+el.style.background = "rgba(255,140,0,0.55)"
+el.style.boxShadow = "0 0 5px rgba(255,140,0,0.45)"
+el.style.width="10px"
+el.style.height="10px"
 }
 
 else{
-
-el.style.background = "rgba(255,255,255,0.9)"
-el.style.boxShadow = "0 0 4px rgba(255,255,255,0.6)"
-
+el.style.background = "rgba(255,255,255,0.18)"
+el.style.boxShadow = "0 0 3px rgba(255,255,255,0.15)"
 }
 
 el.onclick = () => showPopup(d)
@@ -324,10 +324,10 @@ globe.showAtmosphere(false)
 
 const mat = globe.globeMaterial()
 mat.color.set('#ffffff')
-mat.opacity = 0.05
+mat.opacity = 0.02
 mat.transparent = true
 mat.wireframe = true
-mat.wireframeLinewidth = 0.6
+mat.wireframeLinewidth = 0.3
 
 
 
@@ -350,8 +350,8 @@ globe
 
 globe
 .showAtmosphere(true)
-.atmosphereColor("#ffffff")
-.atmosphereAltitude(0.12)
+.atmosphereColor("rgba(255,255,255,0.15)")
+.atmosphereAltitude(0.04)
 
 
 }
