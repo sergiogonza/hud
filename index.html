@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
+
 <title>GEOPOLITICAL EARLY WARNING HUD</title>
 
 <link rel="stylesheet" href="style.css">
@@ -14,26 +16,44 @@
 
 <body>
 
+<!-- SPACE BACKGROUND -->
+
 <div class="space-background"></div>
 <div class="grid-overlay"></div>
 
+<!-- GLOBE -->
+
 <div id="three-container"></div>
+
+<!-- HUD INTERFACE -->
 
 <div class="interface-container">
 
 <header class="header">
+
 <div class="header-item">GEOPOLITICAL EARLY WARNING SYSTEM</div>
-<div class="header-item">OSINT MODE</div>
-<div class="header-item">LIVE FEEDS</div>
+
+<div class="header-item">OSINT MODE ACTIVE</div>
+
+<div class="header-item">LIVE INTELLIGENCE FEEDS</div>
+
 </header>
 
+
+<!-- TOP PANELS -->
+
 <div class="data-panels">
+
+<!-- GLOBAL METRICS -->
 
 <div class="data-panel draggable">
 
 <div class="panel-header">
+
 <div class="data-panel-title">GLOBAL METRICS</div>
+
 <button class="btn mini-btn" onclick="minimizePanel(this)">–</button>
+
 </div>
 
 <div class="panel-body">
@@ -57,28 +77,139 @@
 
 </div>
 
+
+<!-- TIMELINE -->
+
 <div class="data-panel draggable">
 
 <div class="panel-header">
-<div class="data-panel-title">TIMELINE</div>
+
+<div class="data-panel-title">TIMELINE 2019‑2026</div>
+
+<button class="btn mini-btn" onclick="minimizePanel(this)">–</button>
+
+</div>
+
+<div class="panel-body">
+
+<input type="range"
+min="2019"
+max="2026"
+value="2026"
+class="slider"
+id="timeline">
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- FEED PANELS -->
+
+<div class="data-panels">
+
+<!-- INTELLIGENCE FEEDS -->
+
+<div class="data-panel draggable">
+
+<div class="panel-header">
+
+<div class="data-panel-title">INTELLIGENCE FEEDS</div>
+
+<button class="btn mini-btn" onclick="minimizePanel(this)">–</button>
+
+</div>
+
+<div class="panel-body" id="intelFeed">
+
+<!-- RSS Intelligence -->
+
+</div>
+
+</div>
+
+
+<!-- CYBER FEEDS -->
+
+<div class="data-panel draggable">
+
+<div class="panel-header">
+
+<div class="data-panel-title">CYBERSECURITY FEEDS</div>
+
+<button class="btn mini-btn" onclick="minimizePanel(this)">–</button>
+
+</div>
+
+<div class="panel-body" id="cyberFeed">
+
+</div>
+
+</div>
+
+
+<!-- LEGISLATIVE / BILLS -->
+
+<div class="data-panel draggable">
+
+<div class="panel-header">
+
+<div class="data-panel-title">LEGISLATIVE FEEDS</div>
+
+<button class="btn mini-btn" onclick="minimizePanel(this)">–</button>
+
+</div>
+
+<div class="panel-body" id="billsFeed">
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- PROSPECTIVE QUADRANT -->
+
+<div class="data-panels">
+
+<div class="data-panel draggable" style="width:360px">
+
+<div class="panel-header">
+<div class="data-panel-title">PROSPECTIVE MATRIX</div>
 <button class="btn mini-btn" onclick="minimizePanel(this)">–</button>
 </div>
 
 <div class="panel-body">
 
-<input type="range" min="2019" max="2026" value="2026" class="slider" id="timeline">
+<canvas id="prospectiveChart" width="320" height="320"></canvas>
+
+<div class="quadrant-legend">
+
+<div>Q1 → HIGH PROB / HIGH PLAUS</div>
+<div>Q2 → LOW PROB / HIGH PLAUS</div>
+<div>Q3 → HIGH PROB / LOW PLAUS</div>
+<div>Q4 → LOW PROB / LOW PLAUS</div>
 
 </div>
 
 </div>
 
 </div>
+
+</div>
+
+
+<!-- TERMINAL -->
 
 <div class="terminal-panel draggable">
 
 <div class="panel-header terminal-header">
 
-<div>TERMINAL</div>
+<div>OSINT TERMINAL</div>
+
 <button class="btn mini-btn" onclick="minimizePanel(this)">–</button>
 
 </div>
@@ -89,18 +220,29 @@
 
 </div>
 
-<div id="eventPopup" class="control-panel draggable" style="display:none;width:500px">
+
+<!-- EVENT POPUP WINDOW -->
+
+<div id="eventPopup"
+class="control-panel draggable"
+style="display:none;width:520px">
 
 <div class="panel-header">
 
 <div id="popupTitle">EVENT</div>
+
 <button class="btn" onclick="closePopup()">X</button>
 
 </div>
 
-<div class="panel-body" id="popupContent"></div>
+<div class="panel-body" id="popupContent">
+
+<!-- NEWS CONTENT -->
 
 </div>
+
+</div>
+
 
 <script src="app.js"></script>
 

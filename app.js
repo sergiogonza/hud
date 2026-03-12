@@ -59,7 +59,8 @@ function log(msg){
 
 let terminal=document.getElementById("terminal")
 
-terminal.innerHTML+=`<div class="terminal-line">${msg}</div>`
+terminal.insertAdjacentHTML("beforeend",
+`<div class="terminal-line">${msg}</div>`)
 
 terminal.scrollTop=terminal.scrollHeight
 
@@ -84,17 +85,23 @@ return score
 
 function detectActors(text){
 
-let found=[]
+text = text.toLowerCase()
+
+let found = new Set()
 
 for(let actor in actors){
 
 actors[actor].forEach(k=>{
-if(text.toLowerCase().includes(k))found.push(actor)
+
+if(text.includes(k)){
+found.add(actor)
+}
+
 })
 
 }
 
-return found
+return Array.from(found)
 
 }
 
@@ -102,7 +109,7 @@ return found
 
 function processItem(item){
 
-let text=(item.title||"")+" "+(item.contentSnippet||"")
+let text=(item.title||"")+" "+(item.description||"")
 
 let found=detectActors(text)
 
@@ -116,14 +123,27 @@ if(!coords)return
 
 let risk=riskScore(text)
 
+let tlp=tlpLevel(text)
+
+let prob=probabilityScore(text)
+
+let plaus=plausibilityScore(text)
+
 events.push({
 
 title:item.title,
-desc:item.contentSnippet,
-img:item.enclosure?.url,
+desc:item.description,
+img:item.thumbnail || item.enclosure?.link || null,
+
 lat:coords[0],
 lng:coords[1],
+
 risk:risk,
+tlp:tlp,
+
+prob:prob,
+plaus:plaus,
+
 source:item.link
 
 })
@@ -136,9 +156,7 @@ source:item.link
 
 async function loadFeeds(){
 
-const parser=new RSSParser()
-
-document.getElementById("feeds").innerText=feeds.length
+document.getElementById("feeds").innerText = feeds.length
 
 for(const url of feeds){
 
@@ -146,15 +164,19 @@ try{
 
 log("CONNECTING "+url)
 
-const proxy="https://api.allorigins.win/raw?url="+encodeURIComponent(url)
+const proxy = "https://api.rss2json.com/v1/api.json?rss_url="+encodeURIComponent(url)
 
-const feed=await parser.parseURL(proxy)
+const res = await fetch(proxy)
 
-feed.items.forEach(item=>{
+const data = await res.json()
 
+if(!data.items) continue
+
+data.items.forEach(item=>{
 processItem(item)
-
 })
+
+log("LOADED "+url)
 
 }catch(e){
 
@@ -165,6 +187,7 @@ log("ERROR "+url)
 }
 
 renderEvents()
+drawProspectiveMatrix()
 
 }
 
@@ -182,10 +205,24 @@ globe.pointsData(events)
 
 .pointLat(d=>d.lat)
 .pointLng(d=>d.lng)
-.pointAltitude(d=>d.risk/20)
-.pointColor(d=> d.risk>6 ? "#ff4e42":"#ffb3ab")
+.pointAltitude(d=>0.02 + d.risk*0.01)
+
+.pointColor(d=>{
+if(d.tlp==="RED") return "#ff2b2b"
+if(d.tlp==="AMBER") return "#ff8c00"
+if(d.tlp==="GREEN") return "#00ffa6"
+return "#ffaa33"
+})
 
 .onPointClick(showPopup)
+
+
+globe.globeImageUrl(null)
+globe.showAtmosphere(false)
+
+const mat = globe.globeMaterial()
+mat.color.set('#081421')
+mat.wireframe = true
 
 }
 
@@ -201,23 +238,36 @@ let html=""
 
 if(d.img){
 
-html+=`<img src="${d.img}" style="width:100%;filter:grayscale(100%);margin-bottom:10px">`
+html+=`<img src="${d.img}"
+style="width:100%;
+filter:grayscale(100%);
+margin-bottom:10px">`
 
 }
 
-html+=`<p>${d.desc}</p>`
+html+=`
 
-html+=`<a href="${d.source}" target="_blank">OPEN SOURCE</a>`
+<p>${d.desc}</p>
+
+<div style="margin-top:10px">
+
+TLP: ${d.tlp}<br>
+
+Probability: ${d.prob}<br>
+
+Plausibility: ${d.plaus}
+
+</div>
+
+<a href="${d.source}" target="_blank">
+OPEN SOURCE
+</a>
+
+`
 
 document.getElementById("popupContent").innerHTML=html
 
 popup.style.display="block"
-
-}
-
-function closePopup(){
-
-document.getElementById("eventPopup").style.display="none"
 
 }
 
@@ -227,8 +277,7 @@ setInterval(()=>{
 
 log("REFRESHING FEEDS")
 
-events=[]
-
+events.length = 0
 loadFeeds()
 
 },300000)
@@ -288,5 +337,136 @@ function minimizePanel(btn){
 let panel=btn.closest(".draggable")
 
 panel.classList.toggle("minimized")
+
+}
+
+
+
+
+
+function tlpLevel(text){
+
+if(/nuclear|war|attack/i.test(text)) return "RED"
+
+if(/cyber|military|threat/i.test(text)) return "AMBER"
+
+if(/law|bill|policy/i.test(text)) return "GREEN"
+
+return "CLEAR"
+
+}
+
+
+
+
+function probabilityScore(text){
+
+let score=0
+
+if(/war/i.test(text))score+=4
+if(/conflict/i.test(text))score+=3
+if(/sanctions/i.test(text))score+=2
+
+return score
+}
+
+function plausibilityScore(text){
+
+let score=0
+
+if(/report|analysis/i.test(text))score+=3
+if(/data|evidence/i.test(text))score+=3
+
+return score
+}
+
+
+
+
+
+
+
+
+function drawProspectiveMatrix(){
+
+const canvas = document.getElementById("prospectiveChart")
+const ctx = canvas.getContext("2d")
+
+const w = canvas.width
+const h = canvas.height
+
+ctx.clearRect(0,0,w,h)
+
+ctx.strokeStyle="#ff4e42"
+ctx.lineWidth=2
+
+/* borde */
+
+ctx.strokeRect(0,0,w,h)
+
+/* linea vertical */
+
+ctx.beginPath()
+ctx.moveTo(w/2,0)
+ctx.lineTo(w/2,h)
+ctx.stroke()
+
+/* linea horizontal */
+
+ctx.beginPath()
+ctx.moveTo(0,h/2)
+ctx.lineTo(w,h/2)
+ctx.stroke()
+
+/* conteo cuadrantes */
+
+let q1=0,q2=0,q3=0,q4=0
+
+events.forEach(e=>{
+
+let prob = e.prob || 2
+let plaus = e.plaus || 2
+
+if(prob>=3 && plaus>=3) q1++
+
+else if(prob<3 && plaus>=3) q2++
+
+else if(prob>=3 && plaus<3) q3++
+
+else q4++
+
+})
+
+ctx.fillStyle="#ff4e42"
+ctx.font="20px monospace"
+ctx.textAlign="center"
+
+/* Q1 */
+
+ctx.fillText(q1, w*0.75, h*0.25)
+
+/* Q2 */
+
+ctx.fillText(q2, w*0.25, h*0.25)
+
+/* Q3 */
+
+ctx.fillText(q3, w*0.75, h*0.75)
+
+/* Q4 */
+
+ctx.fillText(q4, w*0.25, h*0.75)
+
+/* etiquetas */
+
+ctx.font="10px monospace"
+
+ctx.fillText("PLAUSIBILITY ↑", w/2, 12)
+
+ctx.save()
+ctx.translate(12,h/2)
+ctx.rotate(-Math.PI/2)
+ctx.fillText("PROBABILITY →",0,0)
+ctx.restore()
 
 }
