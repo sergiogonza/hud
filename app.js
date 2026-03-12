@@ -240,80 +240,6 @@ source: item.link
 
 
 
-if(found.length===0){
-
-let randomLat = (Math.random()*140)-70
-let randomLng = (Math.random()*360)-180
-
-events.push({
-year:year,
-title:item.title,
-desc:item.description,
-lat:randomLat,
-lng:randomLng,
-risk:riskScore(text),
-tlp:tlpLevel(text),
-prob:probabilityScore(text),
-plaus:plausibilityScore(text),
-source:item.link
-})
-
-renderFeedItem(item)
-
-return
-}
-
-
-
-found.forEach(actor=>{
-
-let coords=geo[actor]
-
-if(!coords)return
-
-let risk=riskScore(text)
-
-let tlp=tlpLevel(text)
-
-let prob=probabilityScore(text)
-
-let plaus=plausibilityScore(text)
-
-renderFeedItem(item)
-
-events.push({
-
-year:year,
-
-title:item.title,
-desc:item.description,
-
-
-img:
-item.thumbnail ||
-item.enclosure?.link ||
-item.enclosure?.url ||
-item.media?.content ||
-null,
-
-
-
-lat:coords[0],
-lng:coords[1],
-
-risk:risk,
-tlp:tlp,
-
-prob:prob,
-plaus:plaus,
-
-source:item.link
-
-})
-
-})
-
-}
 
 /* LOAD FEEDS */
 
@@ -384,7 +310,7 @@ renderEvents()
 drawProspectiveMatrix()
 loadIntelVideos()
 buildLinkAnalysis()
-  
+
 }
 
 /* RENDER EVENTS */
@@ -1131,5 +1057,3 @@ color:"#ff9d00"
 new vis.Network(container,data,options)
 
 }
-
-
