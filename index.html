@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<title>GEOPOLITICAL EARLY WARNING HUD</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://unpkg.com/globe.gl"></script>
+<script src="https://cdn.jsdelivr.net/npm/rss-parser/dist/rss-parser.min.js"></script>
+
+</head>
+
+<body>
+
+<div class="space-background"></div>
+<div class="grid-overlay"></div>
+
+<div id="three-container"></div>
+
+<div class="interface-container">
+
+<header class="header">
+<div class="header-item">GEOPOLITICAL EARLY WARNING SYSTEM</div>
+<div class="header-item">OSINT MODE</div>
+<div class="header-item">LIVE FEEDS</div>
+</header>
+
+<div class="data-panels">
+
+<div class="data-panel draggable">
+
+<div class="panel-header">
+<div class="data-panel-title">GLOBAL METRICS</div>
+<button class="btn mini-btn" onclick="minimizePanel(this)">–</button>
+</div>
+
+<div class="panel-body">
+
+<div class="data-row">
+<div class="data-label">EVENTS</div>
+<div class="data-value" id="events">0</div>
+</div>
+
+<div class="data-row">
+<div class="data-label">GLOBAL RISK</div>
+<div class="data-value" id="risk">0</div>
+</div>
+
+<div class="data-row">
+<div class="data-label">FEEDS ACTIVE</div>
+<div class="data-value" id="feeds">0</div>
+</div>
+
+</div>
+
+</div>
+
+<div class="data-panel draggable">
+
+<div class="panel-header">
+<div class="data-panel-title">TIMELINE</div>
+<button class="btn mini-btn" onclick="minimizePanel(this)">–</button>
+</div>
+
+<div class="panel-body">
+
+<input type="range" min="2019" max="2026" value="2026" class="slider" id="timeline">
+
+</div>
+
+</div>
+
+</div>
+
+<div class="terminal-panel draggable">
+
+<div class="panel-header terminal-header">
+
+<div>TERMINAL</div>
+<button class="btn mini-btn" onclick="minimizePanel(this)">–</button>
+
+</div>
+
+<div class="panel-body terminal-content" id="terminal"></div>
+
+</div>
+
+</div>
+
+<div id="eventPopup" class="control-panel draggable" style="display:none;width:500px">
+
+<div class="panel-header">
+
+<div id="popupTitle">EVENT</div>
+<button class="btn" onclick="closePopup()">X</button>
+
+</div>
+
+<div class="panel-body" id="popupContent"></div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
