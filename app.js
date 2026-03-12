@@ -3,8 +3,8 @@ const container = document.getElementById("three-container")
 /* GLOBE */
 
 const globe = Globe()(container)
-.globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-.bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+.globeImageUrl(null)
+.bumpImageUrl(null)
 .backgroundColor('rgba(0,0,0,0)')
 
 /* RSS FEEDS */
