@@ -27,13 +27,16 @@ const feeds = [
 
 const actors = {
 
-china:["china","beijing"],
-russia:["russia","kremlin"],
-usa:["united states","washington"],
-iran:["iran"],
-nato:["nato"],
-eu:["european union"],
-northkorea:["north korea"]
+  china:["china","beijing","pla","ccp"],
+  russia:["russia","kremlin","moscow"],
+  usa:["united states","washington","pentagon"],
+  iran:["iran","tehran","irgc"],
+  nato:["nato"],
+  eu:["european union","brussels"],
+  northkorea:["north korea","pyongyang"],
+  taiwan:["taiwan"],
+  israel:["israel","idf","tel aviv"],
+  uk:["united kingdom","britain","london"]
 
 }
 
@@ -109,11 +112,38 @@ return Array.from(found)
 
 function processItem(item){
 
-let text=(item.title||"")+" "+(item.description||"")
+let year = new Date(item.pubDate || Date.now()).getFullYear()
 
+
+let text=(item.title||"")+" "+(item.description||"")
 let found=detectActors(text)
 
-if(found.length===0)return
+
+
+if(found.length===0){
+
+let randomLat = (Math.random()*140)-70
+let randomLng = (Math.random()*360)-180
+
+events.push({
+year:year,
+title:item.title,
+desc:item.description,
+lat:randomLat,
+lng:randomLng,
+risk:riskScore(text),
+tlp:tlpLevel(text),
+prob:probabilityScore(text),
+plaus:plausibilityScore(text),
+source:item.link
+})
+
+renderFeedItem(item)
+
+return
+}
+
+
 
 found.forEach(actor=>{
 
@@ -133,9 +163,20 @@ renderFeedItem(item)
 
 events.push({
 
+year:year,
+
 title:item.title,
 desc:item.description,
-img:item.thumbnail || item.enclosure?.link || null,
+
+
+img:
+item.thumbnail ||
+item.enclosure?.link ||
+item.enclosure?.url ||
+item.media?.content ||
+null,
+
+
 
 lat:coords[0],
 lng:coords[1],
@@ -158,6 +199,11 @@ source:item.link
 
 async function loadFeeds(){
 
+  document.getElementById("intelFeed").innerHTML=""
+  document.getElementById("cyberFeed").innerHTML=""
+  document.getElementById("billsFeed").innerHTML=""
+
+
 document.getElementById("feeds").innerText = feeds.length
 
 for(const url of feeds){
@@ -166,17 +212,36 @@ try{
 
 log("CONNECTING "+url)
 
-const proxy = "https://api.rss2json.com/v1/api.json?rss_url="+encodeURIComponent(url)
 
+const proxy = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url)
 const res = await fetch(proxy)
 
-const data = await res.json()
 
-if(!data.items) continue
+const xmlText = await res.text()
 
-data.items.forEach(item=>{
+const parser = new DOMParser()
+const xml = parser.parseFromString(xmlText,"text/xml")
+
+
+
+const items = xml.querySelectorAll("item")
+
+items.forEach(node=>{
+
+const item={
+title:node.querySelector("title")?.textContent,
+description:node.querySelector("description")?.textContent,
+link:node.querySelector("link")?.textContent,
+pubDate:node.querySelector("pubDate")?.textContent,
+feedSource:url
+}
+
 processItem(item)
+
 })
+
+
+
 
 log("LOADED "+url)
 
@@ -203,37 +268,90 @@ let totalRisk=events.reduce((s,e)=>s+e.risk,0)
 
 document.getElementById("risk").innerText=totalRisk
 
-globe.pointsData(events)
 
-.pointLat(d=>d.lat)
-.pointLng(d=>d.lng)
-.pointAltitude(d=>0.02 + d.risk*0.01)
 
-.pointColor(d=>{
-if(d.tlp==="RED") return "#ff2b2b"
-if(d.tlp==="AMBER") return "#ff8c00"
-if(d.tlp==="GREEN") return "#00ffa6"
-return "#ffaa33"
+
+
+globe.htmlElementsData(events)
+.htmlElement(d => {
+
+const el = document.createElement("div")
+el.className = "map-hotspot"
+
+el.style.width = "10px"
+el.style.height = "10px"
+el.style.borderRadius = "50%"
+el.style.cursor = "pointer"
+
+/* COLOR SEGUN TLP */
+
+if(d.tlp === "RED"){
+
+el.style.background = "#ff3b30"
+el.style.boxShadow = "0 0 8px #ff3b30"
+el.style.width="14px"
+el.style.height="14px"
+
+}
+
+else if(d.tlp === "AMBER"){
+
+el.style.background = "#ff8c00"
+el.style.boxShadow = "0 0 8px #ff8c00"
+
+el.style.width="12px"
+el.style.height="12px"
+
+}
+
+else{
+
+el.style.background = "rgba(255,255,255,0.9)"
+el.style.boxShadow = "0 0 4px rgba(255,255,255,0.6)"
+
+}
+
+el.onclick = () => showPopup(d)
+
+return el
 })
 
-.onPointClick(showPopup)
+
 
 
 globe.globeImageUrl(null)
 globe.showAtmosphere(false)
 
 const mat = globe.globeMaterial()
-mat.color.set('#ff4e42')
+mat.color.set('#ffffff')
+mat.opacity = 0.05
+mat.transparent = true
 mat.wireframe = true
-
 mat.wireframeLinewidth = 0.6
 
+
+
 globe
-.globeCurvatureResolution(4)
+.globeCurvatureResolution(3)
 
 
 globe.controls().autoRotate = true
 globe.controls().autoRotateSpeed = 0.35
+
+
+
+
+globe
+.hexPolygonsData([])
+.hexPolygonResolution(3)
+.hexPolygonMargin(0.7)
+
+
+
+globe
+.showAtmosphere(true)
+.atmosphereColor("#ffffff")
+.atmosphereAltitude(0.12)
 
 
 }
@@ -248,30 +366,37 @@ document.getElementById("popupTitle").innerText=d.title
 
 let html=""
 
+
 if(d.img){
-
-html+=`<img src="${d.img}"
-style="width:100%;
-filter:grayscale(100%);
-margin-bottom:10px">`
-
+html+=`<img src="${d.img}" class="popup-img">`
 }
 
 html+=`
 
-<p>${d.desc}</p>
+<div class="popup-meta">
 
-<div style="margin-top:10px">
+<div class="meta-row">
+<span class="meta-label">TLP</span>
+<span class="meta-value tlp-${d.tlp}">${d.tlp}</span>
+</div>
 
-TLP: ${d.tlp}<br>
+<div class="meta-row">
+<span class="meta-label">PROBABILITY</span>
+<span class="meta-value">${d.prob}</span>
+</div>
 
-Probability: ${d.prob}<br>
-
-Plausibility: ${d.plaus}
+<div class="meta-row">
+<span class="meta-label">PLAUSIBILITY</span>
+<span class="meta-value">${d.plaus}</span>
+</div>
 
 </div>
 
-<a href="${d.source}" target="_blank">
+<div class="popup-desc">
+${(d.desc || "").replace(/<a[^>]*>(.*?)<\/a>/g,'$1')}
+</div>
+
+<a class="popup-link" href="${d.source}" target="_blank">
 OPEN SOURCE
 </a>
 
@@ -412,6 +537,46 @@ ctx.clearRect(0,0,w,h)
 ctx.strokeStyle="#ff4e42"
 ctx.lineWidth=2
 
+
+
+
+ctx.fillStyle="#9fb3c8"
+ctx.font="9px monospace"
+
+/* Q1 */
+ctx.fillText("ESCALATION SCENARIO", w*0.75, h*0.25 + 18)
+
+/* Q2 */
+ctx.fillText("STRATEGIC TENSION", w*0.25, h*0.25 + 18)
+
+/* Q3 */
+ctx.fillText("FLASHPOINT RISK", w*0.75, h*0.75 + 18)
+
+/* Q4 */
+ctx.fillText("LOW SIGNAL", w*0.25, h*0.75 + 18)
+
+
+
+
+ctx.fillStyle="#8aa0b5"
+ctx.font="8px monospace"
+
+ctx.fillText("HIGH PLAUSIBILITY", w/2, 10)
+ctx.fillText("LOW PLAUSIBILITY", w/2, h-6)
+
+ctx.save()
+ctx.translate(6,h/2)
+ctx.rotate(-Math.PI/2)
+ctx.fillText("LOW PROBABILITY",0,0)
+ctx.restore()
+
+ctx.save()
+ctx.translate(w-6,h/2)
+ctx.rotate(Math.PI/2)
+ctx.fillText("HIGH PROBABILITY",0,0)
+ctx.restore()
+
+
 /* borde */
 
 ctx.strokeRect(0,0,w,h)
@@ -439,13 +604,13 @@ events.forEach(e=>{
 let prob = e.prob || 2
 let plaus = e.plaus || 2
 
-if(prob>=3 && plaus>=3) q1++
+if(prob>=3 && plaus>=3) q1 += e.risk
 
-else if(prob<3 && plaus>=3) q2++
+else if(prob<3 && plaus>=3) q2 += e.risk
 
-else if(prob>=3 && plaus<3) q3++
+else if(prob>=3 && plaus<3) q3 += e.risk
 
-else q4++
+else q4 += e.risk
 
 })
 
@@ -492,19 +657,29 @@ popup.style.display="none"
 
 
 
+
+
 function renderFeedItem(item){
 
 let container
 
-if(item.link?.includes("cyber") || item.link?.includes("cisa")){
+if(item.link.includes("cisa") ||
+   item.link.includes("sans") ||
+   item.link.includes("cyber")){
 container=document.getElementById("cyberFeed")
 }
-else if(item.link?.includes("bill") || item.link?.includes("parliament")){
+
+else if(item.link.includes("bill") ||
+        item.link.includes("parliament") ||
+        item.link.includes("govinfo")){
 container=document.getElementById("billsFeed")
 }
+
 else{
 container=document.getElementById("intelFeed")
 }
+
+if(!container) return
 
 const html=`
 <div class="feed-item">
@@ -520,3 +695,29 @@ container.removeChild(container.lastChild)
 }
 
 }
+
+
+
+
+
+
+
+function filterByYear(year){
+
+let filtered = events.filter(e=>e.year<=year)
+
+globe.htmlElementsData(filtered)
+
+drawProspectiveMatrix()
+
+}
+
+
+
+document.getElementById("timeline").addEventListener("input",e=>{
+
+let year=e.target.value
+
+filterByYear(year)
+
+})
