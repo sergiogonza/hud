@@ -1289,15 +1289,6 @@ background:rgba(255,78,66,0.08);
 
 
 
-#linkAnalysisPanel{
-width:420px;
-height:420px;
-right:20px;
-bottom:20px;
-position:absolute;
-background:#0b0f14;
-border:1px solid #1f2a36;
-}
 
 #mynetwork{
 width:100%;
@@ -1305,3 +1296,14 @@ height:360px;
 background:#000;
 border-top:1px solid #1f2a36;
 }
+
+
+
+#mynetwork canvas{
+pointer-events:auto;
+}
+
+#three-container{
+pointer-events:auto;
+}
+
