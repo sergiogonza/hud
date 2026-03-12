@@ -69,6 +69,7 @@ northkorea:[40,127]
 }
 
 let events=[]
+let intelEvents=[]
 
 /* TERMINAL */
 
@@ -125,6 +126,24 @@ return Array.from(found)
 /* PROCESS ITEM */
 
 function processItem(item){
+
+
+let text=(item.title||"")+" "+(item.description||"")
+
+/* DETECTAR SI ES FEED DE INTELIGENCIA */
+
+if(
+item.feedSource.includes("warontherocks") ||
+item.feedSource.includes("resurgamhub")
+){
+intelEvents.push({
+title:item.title,
+description:item.description
+})
+}
+
+
+  
 
 let year = new Date(item.pubDate || Date.now()).getFullYear()
 
@@ -458,13 +477,13 @@ popup.style.display="block"
 /* AUTO REFRESH */
 
 setInterval(()=>{
-
 log("REFRESHING FEEDS")
-
 events.length = 0
+intelEvents.length = 0
 loadFeeds()
-
 },300000)
+
+
 
 /* INITIAL LOAD */
 
@@ -790,6 +809,7 @@ return text
 
 
 
+
 async function loadIntelVideos(){
 
 let query = getFeedKeywords()
@@ -801,14 +821,38 @@ try{
 let url=`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&videoEmbeddable=true&maxResults=8&key=${YT_API_KEY}`
 
 let res = await fetch(url)
+
 let data = await res.json()
 
 if(!data.items || data.items.length===0){
-document.getElementById("videoPanel").innerHTML="NO VIDEOS FOUND"
+log("NO VIDEOS FOUND")
 return
 }
 
-let first = data.items[0].id.videoId
+/* VIDEO PRINCIPAL (prioriza think tanks) */
+
+let first=null
+
+for(let v of data.items){
+
+let channel=v.snippet.channelTitle
+
+let trusted=trustedChannels.some(c =>
+channel.toLowerCase().includes(c.toLowerCase())
+)
+
+if(trusted){
+first=v.id.videoId
+break
+}
+
+}
+
+if(!first){
+first=data.items[0].id.videoId
+}
+
+/* MOSTRAR VIDEO PRINCIPAL */
 
 document.getElementById("mainVideo").innerHTML=
 `
@@ -817,6 +861,8 @@ src="https://www.youtube.com/embed/${first}"
 allowfullscreen>
 </iframe>
 `
+
+/* LISTA DE VIDEOS */
 
 let html=""
 
@@ -827,11 +873,19 @@ if(!v.id.videoId) return
 let vid=v.id.videoId
 let title=v.snippet.title
 let thumb=v.snippet.thumbnails.medium.url
+let channel=v.snippet.channelTitle
+
+let trusted=trustedChannels.some(c =>
+channel.toLowerCase().includes(c.toLowerCase())
+)
+
+if(!trusted) return
 
 html+=`
 <div class="video-item" onclick="playVideo('${vid}')">
 <img src="${thumb}">
-<div>${title}</div>
+<div class="video-title">${title}</div>
+<div class="video-channel">${channel}</div>
 </div>
 `
 
@@ -841,11 +895,14 @@ document.getElementById("videoList").innerHTML=html
 
 }catch(e){
 
+console.error(e)
+
 log("YOUTUBE ERROR")
 
 }
 
 }
+
 
 
 
