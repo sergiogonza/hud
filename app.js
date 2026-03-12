@@ -328,6 +328,7 @@ log("ERROR "+url)
 renderEvents()
 drawProspectiveMatrix()
 loadIntelVideos()
+buildLinkAnalysis()
   
 }
 
@@ -918,5 +919,162 @@ allowfullscreen>
 
 }
 
+
+
+
+
+
+function getTopIntelEvent(){
+
+let intel = events.filter(e =>
+e.source.includes("warontherocks") ||
+e.source.includes("resurgamhub")
+)
+
+if(intel.length===0) return null
+
+intel.sort((a,b)=>b.risk-a.risk)
+
+return intel[0]
+
+}
+
+
+
+function buildLinkAnalysis(){
+
+let event = getTopIntelEvent()
+
+if(!event) return
+
+let text = (event.title + " " + event.desc).toLowerCase()
+
+let nodes=[]
+let edges=[]
+
+/* nodo central */
+
+nodes.push({
+id:1,
+label:event.title.substring(0,40),
+group:"event"
+})
+
+let id=2
+
+for(let actor in actors){
+
+actors[actor].forEach(k=>{
+
+if(text.includes(k)){
+
+nodes.push({
+id:id,
+label:actor.toUpperCase(),
+group:"actor"
+})
+
+edges.push({
+from:1,
+to:id
+})
+
+id++
+
+}
+
+})
+
+}
+
+/* agregar tipo de evento */
+
+if(event.risk>7){
+
+nodes.push({
+id:id,
+label:"ESCALATION",
+group:"risk"
+})
+
+edges.push({from:1,to:id})
+
+}
+else{
+
+nodes.push({
+id:id,
+label:"TENSION",
+group:"risk"
+})
+
+edges.push({from:1,to:id})
+
+}
+
+renderLinkGraph(nodes,edges)
+
+}
+
+
+
+
+
+function renderLinkGraph(nodes,edges){
+
+var container = document.getElementById("mynetwork")
+
+var data={
+nodes:nodes,
+edges:edges
+}
+
+var options={
+
+layout:{
+improvedLayout:true
+},
+
+physics:{
+solver:"forceAtlas2Based",
+stabilization:false
+},
+
+nodes:{
+font:{
+color:"#ffffff"
+},
+size:25
+},
+
+edges:{
+color:"#9fb3c8"
+},
+
+groups:{
+
+event:{
+shape:"dot",
+color:"#ff4e42",
+size:30
+},
+
+actor:{
+shape:"dot",
+color:"#9fb3c8"
+},
+
+risk:{
+shape:"dot",
+color:"#ff9d00"
+}
+
+}
+
+}
+
+new vis.Network(container,data,options)
+
+}
 
 
