@@ -23,6 +23,17 @@ const feeds = [
 
 ]
 
+
+/* FEEDS QUE APARECEN EN EL GLOBO */
+const globeFeeds = [
+"https://resurgamhub.org/feed.xml",
+"https://warontherocks.com/feed/",
+"https://bills.parliament.uk/rss/allbills.rss",
+"https://www.govinfo.gov/rss/bills.xml"
+]
+
+
+
 /* ACTOR KEYWORDS */
 
 const actors = {
@@ -117,6 +128,38 @@ let year = new Date(item.pubDate || Date.now()).getFullYear()
 
 let text=(item.title||"")+" "+(item.description||"")
 let found=detectActors(text)
+
+
+
+let showOnGlobe = globeFeeds.includes(item.feedSource)
+
+found.forEach(actor=>{
+let coords=geo[actor]
+if(!coords)return
+
+let risk=riskScore(text)
+let tlp=tlpLevel(text)
+let prob=probabilityScore(text)
+let plaus=plausibilityScore(text)
+
+renderFeedItem(item)
+
+if(showOnGlobe){
+events.push({
+year:year,
+title:item.title,
+desc:item.description,
+lat:coords[0],
+lng:coords[1],
+risk:risk,
+tlp:tlp,
+prob:prob,
+plaus:plaus,
+source:item.link
+})
+}
+
+})
 
 
 
