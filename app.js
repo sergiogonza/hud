@@ -1,5 +1,8 @@
 const container = document.getElementById("three-container")
 
+
+const YT_API_KEY = "AIzaSyB3HNhg3UJEoqmayKcJzFET9I2IDEXeYhE"
+
 /* GLOBE */
 
 const globe = Globe()(container)
@@ -305,7 +308,8 @@ log("ERROR "+url)
 
 renderEvents()
 drawProspectiveMatrix()
-
+loadIntelVideos()
+  
 }
 
 /* RENDER EVENTS */
@@ -764,3 +768,98 @@ let year=e.target.value
 filterByYear(year)
 
 })
+
+
+
+
+
+function getFeedKeywords(){
+
+if(!events || events.length===0){
+return "geopolitics intelligence briefing"
+}
+
+let text=""
+
+events.slice(0,5).forEach(e=>{
+text += " " + (e.title || "")
+})
+
+return text
+}
+
+
+
+async function loadIntelVideos(){
+
+let query = getFeedKeywords()
+
+log("YOUTUBE SEARCH: "+query)
+
+try{
+
+let url=`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&videoEmbeddable=true&maxResults=8&key=${YT_API_KEY}`
+
+let res = await fetch(url)
+let data = await res.json()
+
+if(!data.items || data.items.length===0){
+document.getElementById("videoPanel").innerHTML="NO VIDEOS FOUND"
+return
+}
+
+let first = data.items[0].id.videoId
+
+document.getElementById("mainVideo").innerHTML=
+`
+<iframe
+src="https://www.youtube.com/embed/${first}"
+allowfullscreen>
+</iframe>
+`
+
+let html=""
+
+data.items.forEach(v=>{
+
+if(!v.id.videoId) return
+
+let vid=v.id.videoId
+let title=v.snippet.title
+let thumb=v.snippet.thumbnails.medium.url
+
+html+=`
+<div class="video-item" onclick="playVideo('${vid}')">
+<img src="${thumb}">
+<div>${title}</div>
+</div>
+`
+
+})
+
+document.getElementById("videoList").innerHTML=html
+
+}catch(e){
+
+log("YOUTUBE ERROR")
+
+}
+
+}
+
+
+
+function playVideo(id){
+
+document.getElementById("mainVideo").innerHTML=
+`
+<iframe
+src="https://www.youtube.com/embed/${id}"
+allowfullscreen>
+</iframe>
+`
+
+}
+
+
+
