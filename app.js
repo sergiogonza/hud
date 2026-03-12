@@ -3,6 +3,18 @@ const container = document.getElementById("three-container")
 
 const YT_API_KEY = "AIzaSyB3HNhg3UJEoqmayKcJzFET9I2IDEXeYhE"
 
+
+/* TRUSTED INTEL CHANNELS */
+const trustedChannels = [
+"CSIS",
+"Atlantic Council",
+"Royal United Services Institute",
+"RUSI",
+"Center for Strategic",
+"Brookings",
+"Council on Foreign Relations"
+]
+
 /* GLOBE */
 
 const globe = Globe()(container)
