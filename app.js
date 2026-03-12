@@ -129,6 +129,8 @@ let prob=probabilityScore(text)
 
 let plaus=plausibilityScore(text)
 
+renderFeedItem(item)
+
 events.push({
 
 title:item.title,
@@ -221,8 +223,18 @@ globe.globeImageUrl(null)
 globe.showAtmosphere(false)
 
 const mat = globe.globeMaterial()
-mat.color.set('#081421')
+mat.color.set('#ff4e42')
 mat.wireframe = true
+
+mat.wireframeLinewidth = 0.6
+
+globe
+.globeCurvatureResolution(4)
+
+
+globe.controls().autoRotate = true
+globe.controls().autoRotateSpeed = 0.35
+
 
 }
 
@@ -468,5 +480,43 @@ ctx.translate(12,h/2)
 ctx.rotate(-Math.PI/2)
 ctx.fillText("PROBABILITY →",0,0)
 ctx.restore()
+
+}
+
+
+function closePopup(){
+const popup=document.getElementById("eventPopup")
+popup.style.display="none"
+}
+
+
+
+
+function renderFeedItem(item){
+
+let container
+
+if(item.link?.includes("cyber") || item.link?.includes("cisa")){
+container=document.getElementById("cyberFeed")
+}
+else if(item.link?.includes("bill") || item.link?.includes("parliament")){
+container=document.getElementById("billsFeed")
+}
+else{
+container=document.getElementById("intelFeed")
+}
+
+const html=`
+<div class="feed-item">
+<div class="feed-title">${item.title}</div>
+<a href="${item.link}" target="_blank">SOURCE</a>
+</div>
+`
+
+container.insertAdjacentHTML("afterbegin",html)
+
+if(container.children.length>5){
+container.removeChild(container.lastChild)
+}
 
 }
