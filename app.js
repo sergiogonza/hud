@@ -140,7 +140,7 @@ return Array.from(found)
 
 function processItem(item){
 
-let text=(item.title||"")+" "+(item.description||"")
+let text = (item.title || "") + " " + (item.description || "")
 
 /* DETECTAR SI ES FEED DE INTELIGENCIA */
 
@@ -149,50 +149,94 @@ item.feedSource.includes("warontherocks") ||
 item.feedSource.includes("resurgamhub")
 ){
 intelEvents.push({
-title:item.title,
-description:item.description
+title: item.title,
+description: item.description
 })
 }
 
+/* FECHA */
+
 let year = new Date(item.pubDate || Date.now()).getFullYear()
 
+/* ACTORES DETECTADOS */
 
+let found = detectActors(text)
 
-
-let text=(item.title||"")+" "+(item.description||"")
-let found=detectActors(text)
-
-
+/* SI EL FEED DEBE IR AL GLOBO */
 
 let showOnGlobe = globeFeeds.includes(item.feedSource)
 
-found.forEach(actor=>{
-let coords=geo[actor]
-if(!coords)return
+/* SI NO SE DETECTA ACTOR → EVENTO ALEATORIO */
 
-let risk=riskScore(text)
-let tlp=tlpLevel(text)
-let prob=probabilityScore(text)
-let plaus=plausibilityScore(text)
+if(found.length === 0){
+
+let randomLat = (Math.random()*140) - 70
+let randomLng = (Math.random()*360) - 180
+
+events.push({
+year: year,
+title: item.title,
+desc: item.description,
+img:
+item.thumbnail ||
+item.enclosure?.url ||
+item.media?.content ||
+null,
+lat: randomLat,
+lng: randomLng,
+risk: riskScore(text),
+tlp: tlpLevel(text),
+prob: probabilityScore(text),
+plaus: plausibilityScore(text),
+source: item.link
+})
+
+renderFeedItem(item)
+return
+}
+
+/* EVENTOS POR ACTOR */
+
+found.forEach(actor=>{
+
+let coords = geo[actor]
+if(!coords) return
+
+let risk = riskScore(text)
+let tlp = tlpLevel(text)
+let prob = probabilityScore(text)
+let plaus = plausibilityScore(text)
 
 renderFeedItem(item)
 
 if(showOnGlobe){
+
 events.push({
-year:year,
-title:item.title,
-desc:item.description,
-lat:coords[0],
-lng:coords[1],
-risk:risk,
-tlp:tlp,
-prob:prob,
-plaus:plaus,
-source:item.link
+year: year,
+title: item.title,
+desc: item.description,
+img:
+item.thumbnail ||
+item.enclosure?.url ||
+item.media?.content ||
+null,
+lat: coords[0],
+lng: coords[1],
+risk: risk,
+tlp: tlp,
+prob: prob,
+plaus: plaus,
+source: item.link
 })
+
 }
 
 })
+
+}
+
+
+
 
 
 
