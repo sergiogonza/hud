@@ -125,13 +125,12 @@ return Array.from(found)
 
 /* PROCESS ITEM */
 
-function processItem(item){
 
+function processItem(item){
 
 let text=(item.title||"")+" "+(item.description||"")
 
 /* DETECTAR SI ES FEED DE INTELIGENCIA */
-
 if(
 item.feedSource.includes("warontherocks") ||
 item.feedSource.includes("resurgamhub")
@@ -141,9 +140,6 @@ title:item.title,
 description:item.description
 })
 }
-
-
-  
 
 let year = new Date(item.pubDate || Date.now()).getFullYear()
 
