@@ -398,7 +398,7 @@ globe
 
 globe
 .showAtmosphere(true)
-.atmosphereColor("rgba(255,255,255,0.15)")
+.atmosphereColor("#ffffff")
 .atmosphereAltitude(0.04)
 
 
@@ -774,19 +774,21 @@ filterByYear(year)
 
 
 
+
+
+
 function getFeedKeywords(){
 
-if(!events || events.length===0){
-return "geopolitics intelligence briefing"
-}
+let keywords = [
+"geopolitics analysis",
+"military strategy",
+"global security",
+"china russia nato",
+"international security briefing"
+]
 
-let text=""
+return keywords[Math.floor(Math.random()*keywords.length)]
 
-events.slice(0,5).forEach(e=>{
-text += " " + (e.title || "")
-})
-
-return text
 }
 
 
@@ -794,80 +796,48 @@ return text
 
 async function loadIntelVideos(){
 
-let query = getFeedKeywords()
+let query="geopolitics analysis"
 
 log("YOUTUBE SEARCH: "+query)
 
 try{
 
-let url=`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&videoEmbeddable=true&maxResults=8&key=${YT_API_KEY}`
+let url=`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&videoEmbeddable=true&maxResults=6&key=${YT_API_KEY}`
 
-let res = await fetch(url)
+let res=await fetch(url)
 
-let data = await res.json()
+let data=await res.json()
 
 if(!data.items || data.items.length===0){
 log("NO VIDEOS FOUND")
 return
 }
 
-/* VIDEO PRINCIPAL (prioriza think tanks) */
-
-let first=null
-
-for(let v of data.items){
-
-let channel=v.snippet.channelTitle
-
-let trusted=trustedChannels.some(c =>
-channel.toLowerCase().includes(c.toLowerCase())
-)
-
-if(trusted){
-first=v.id.videoId
-break
-}
-
-}
-
-if(!first){
-first=data.items[0].id.videoId
-}
-
-/* MOSTRAR VIDEO PRINCIPAL */
+let first=data.items[0].id.videoId
 
 document.getElementById("mainVideo").innerHTML=
 `
 <iframe
+width="100%"
+height="220"
 src="https://www.youtube.com/embed/${first}"
+frameborder="0"
 allowfullscreen>
 </iframe>
 `
-
-/* LISTA DE VIDEOS */
 
 let html=""
 
 data.items.forEach(v=>{
 
-if(!v.id.videoId) return
-
 let vid=v.id.videoId
 let title=v.snippet.title
 let thumb=v.snippet.thumbnails.medium.url
-let channel=v.snippet.channelTitle
-
-let trusted=trustedChannels.some(c =>
-channel.toLowerCase().includes(c.toLowerCase())
-)
-
-if(!trusted) return
 
 html+=`
 <div class="video-item" onclick="playVideo('${vid}')">
 <img src="${thumb}">
 <div class="video-title">${title}</div>
-<div class="video-channel">${channel}</div>
 </div>
 `
 
@@ -878,12 +848,13 @@ document.getElementById("videoList").innerHTML=html
 }catch(e){
 
 console.error(e)
-
 log("YOUTUBE ERROR")
 
 }
 
 }
+
+
 
 
 
@@ -1023,13 +994,13 @@ stabilization:false
 
 nodes:{
 font:{
-color:"#ffffff"
+color:"#ff4e42"
 },
-size:25
+size:9
 },
 
 edges:{
-color:"#9fb3c8"
+color:"#ff4e42"
 },
 
 groups:{
@@ -1037,17 +1008,17 @@ groups:{
 event:{
 shape:"dot",
 color:"#ff4e42",
-size:30
+size:9
 },
 
 actor:{
 shape:"dot",
-color:"#9fb3c8"
+color:"#ff4e42"
 },
 
 risk:{
 shape:"dot",
-color:"#ff9d00"
+color:"#ff4e42"
 }
 
 }
